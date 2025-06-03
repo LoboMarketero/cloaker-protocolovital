@@ -319,6 +319,51 @@ const generateWhiteQuiz = (reason, details = {}) => {
                 <button class="submit-btn" onclick="validateAndSubmit()">Receber Dicas de Bem-estar</button>
             </div>
         </div>
+        
+        <!-- Página de Confirmação -->
+        <div class="question step-confirmation step-hidden">
+            <div class="result-card" style="background: linear-gradient(135deg, #48bb78, #38a169);">
+                <div class="emoji">✅</div>
+                <h3 class="result-title">Cadastro Realizado com Sucesso!</h3>
+                <p class="result-text">Obrigado por participar do nosso quiz de bem-estar. Suas respostas foram registradas e nossa equipe especializada entrará em contato em breve.</p>
+            </div>
+            
+            <div style="background: #f0fff4; border-radius: 12px; padding: 24px; margin-top: 20px; text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                <h4 style="color: #2f855a; font-size: 20px; margin-bottom: 16px; font-weight: 600;">Verifique seu WhatsApp</h4>
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 20px;">
+                    Dentro de <strong>24 horas</strong>, você receberá uma mensagem personalizada com suas dicas de bem-estar baseadas no perfil identificado no quiz.
+                </p>
+                <div style="background: white; border-radius: 8px; padding: 16px; margin: 16px 0; border-left: 4px solid #48bb78;">
+                    <p style="color: #2d3748; margin: 0; font-size: 14px;">
+                        <strong>Importante:</strong> Certifique-se de que seu WhatsApp esteja ativo para receber nossa mensagem com conteúdo exclusivo sobre hábitos saudáveis.
+                    </p>
+                </div>
+                <p style="color: #718096; font-size: 14px; margin-top: 20px;">
+                    Caso não receba nossa mensagem em até 24 horas, verifique se o número informado está correto ou entre em contato conosco.
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                <p style="color: #718096; font-size: 14px; margin-bottom: 16px;">
+                    Enquanto isso, continue cuidando do seu bem-estar! 🌱
+                </p>
+                <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🧘</div>
+                        <p style="font-size: 12px; color: #4a5568; margin: 0;">Pratique mindfulness</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">💧</div>
+                        <p style="font-size: 12px; color: #4a5568; margin: 0;">Mantenha-se hidratado</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 24px; margin-bottom: 8px;">🚶</div>
+                        <p style="font-size: 12px; color: #4a5568; margin: 0;">Mova-se regularmente</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -357,7 +402,12 @@ const generateWhiteQuiz = (reason, details = {}) => {
         }
         
         function updateProgress() {
-            const progress = (currentStep / 7) * 100;
+            let progress;
+            if (currentStep <= 7) {
+                progress = (currentStep / 7) * 85; // 85% para las 7 preguntas
+            } else {
+                progress = 85; // Resultado = 85%
+            }
             document.getElementById('progressBar').style.width = progress + '%';
         }
         
