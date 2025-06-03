@@ -1,0 +1,12 @@
+[build]
+  publish = "."
+  command = "echo 'Build complete'"
+
+[[edge_functions]]
+  function = "cloaker"
+  path = "/*"
+
+[context.production.environment]
+  RESTRICT_TO_BRAZIL = "true"
+  RESTRICT_TO_MOBILE = "true"
+  LOG_LEVEL = "info"
