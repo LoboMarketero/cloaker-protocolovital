@@ -290,4 +290,44 @@ export default async (request, context) => {
     // 2. DETECÇÃO DE PAÍS (segunda prioridade)
     const geoDetection = detectCountry(request, context);
     if (!geoDetection.isBrazil) {
-      console.log(`🌍 País bloqueado: ${geoDetection.country}
+      console.log(`🌍 País bloqueado: ${geoDetection.country} - IP: ${ip}`);
+      return new Response(generateWhitePage('country_blocked', geoDetection), {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' }
+      });
+    }
+    
+    // 3. DETECÇÃO DE DISPOSITIVO MÓVEL (terceira prioridade)
+    const mobileDetection = detectMobileDevice(userAgent);
+    if (!mobileDetection.isAllowed) {
+      console.log(`📱 Dispositivo bloqueado: ${mobileDetection.deviceType} - ${mobileDetection.reason}`);
+      return new Response(generateWhitePage('device_blocked', mobileDetection), {
+        status: 200,
+        headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=3600' }
+      });
+    }
+    
+    // 4. USUÁRIO VÁLIDO → PÁGINA INTERMEDIÁRIA COM UTMIFY
+    const targetUrl = `https://test.protocolovital4f.online${url.pathname}${url.search}`;
+    
+    console.log(`✅ Usuário válido: ${mobileDetection.deviceType} - Brasil - IP: ${ip.substring(0, 10)}***`);
+    console.log(`🎯 Executando UTMify + redirect para: ${targetUrl}`);
+    
+    // RETORNA PÁGINA INTERMEDIÁRIA COM SCRIPTS UTMIFY
+    return new Response(generateTrackingPage(targetUrl), {
+      status: 200,
+      headers: { 
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'no-cache, no-store, must-revalidate',
+        'expires': '0'
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro no cloaker:', error);
+    
+    // Failsafe: em caso de erro, redirect direto
+    const targetUrl = `https://test.protocolovital4f.online${new URL(request.url).pathname}${new URL(request.url).search}`;
+    return Response.redirect(targetUrl, 302);
+  }
+};
